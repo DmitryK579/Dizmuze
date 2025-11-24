@@ -10,22 +10,24 @@ namespace DiscordMusicBot
 {
     internal class Program
     {
-		static async Task Main(string[] args)
+		public static async Task Main(string[] args)
 		{
 			var bot = new DiscordBot();
 			await bot.RunBotAsync();
 		}
 	}
-	public class DiscordBot
+	internal class DiscordBot
 	{
 		private readonly DiscordSocketClient _client;
-		private AppConfig _config;
+		private readonly CommandHandler _commandHandler;
+		private readonly AppConfig _config;
 
 		public DiscordBot()
 		{
 			_config = ReadConfig();
 			_client = new DiscordSocketClient();
 			_client.Log += Log;
+			_commandHandler = new CommandHandler(_client, new CommandService(), _config);
 		}
 
 		public async Task RunBotAsync()
@@ -39,6 +41,7 @@ namespace DiscordMusicBot
 			// Log in and start the bot
 			await _client.LoginAsync(TokenType.Bot, _config.Discord.Token);
 			await _client.StartAsync();
+			await _commandHandler.InstallCommandsAsync();
 			// Block the program until it is closed
 			await Task.Delay(-1);
 		}
