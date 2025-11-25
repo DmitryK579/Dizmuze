@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using DiscordMusicBot.Services;
 using System;
 using System.IO;
 using System.Text.Json;
