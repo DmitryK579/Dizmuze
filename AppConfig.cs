@@ -24,8 +24,23 @@ namespace DiscordMusicBot
 				Prefix = prefix;
 			}
 		}
+		
+		public readonly struct LavalinkConfig
+		{
+			public string BaseAddress { get; init; }
+			public string Passphrase { get; init; }
+
+			[JsonConstructor]
+			public LavalinkConfig(string baseAddress, string passphrase)
+			{
+				BaseAddress = baseAddress;
+				Passphrase = passphrase;
+			}
+		}
 
 		[JsonPropertyName("Discord")]
 		public DiscordConfig Discord { get; init; }
+		[JsonPropertyName("Lavalink")]
+		public LavalinkConfig Lavalink { get; init; }
 	}
 }

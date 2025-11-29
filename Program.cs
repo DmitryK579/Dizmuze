@@ -1,8 +1,11 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
 using DiscordMusicBot.Services;
+using Lavalink4NET.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Text.Json;
@@ -22,6 +25,7 @@ namespace DiscordMusicBot
 	{
 		private DiscordSocketClient _client;
 		private CommandHandler _commandHandler;
+		private InteractionHandler _interactionHandler;
 		private readonly AppConfig _config;
 
 		public DiscordBot()
@@ -31,11 +35,16 @@ namespace DiscordMusicBot
 
 		public async Task RunBotAsync()
 		{
+			//Bot cannot run if config failed to load
+			if (_config == null)
+				return;
+
 			using (var services = ConfigureServices())
 			{
 				_client = services.GetRequiredService<DiscordSocketClient>();
 				_client.Log += Log;
 				_commandHandler = services.GetRequiredService<CommandHandler>();
+				_interactionHandler = services.GetRequiredService<InteractionHandler>();
 
 				// Load the bot token from the appconfig.json file
 				if (string.IsNullOrEmpty(_config.Discord.Token))
@@ -47,6 +56,7 @@ namespace DiscordMusicBot
 				await _client.LoginAsync(TokenType.Bot, _config.Discord.Token);
 				await _client.StartAsync();
 				await _commandHandler.InstallCommandsAsync();
+				await _interactionHandler.InitializeInteractionsAsync();
 				// Block the program until it is closed
 				await Task.Delay(-1);
 			}
@@ -80,6 +90,15 @@ namespace DiscordMusicBot
 				.AddSingleton<DiscordSocketClient>()
 				.AddSingleton<CommandHandler>()
 				.AddSingleton<CommandService>()
+				.AddSingleton<InteractionHandler>()
+				.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
+				.AddLavalink()
+				.ConfigureLavalink(config =>
+				{
+					config.BaseAddress = new Uri(_config.Lavalink.BaseAddress);
+					config.Passphrase = _config.Lavalink.Passphrase;
+				})
+				.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace))
 				.BuildServiceProvider();
 		}
 	}

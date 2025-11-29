@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,17 +16,27 @@ namespace DiscordMusicBot.Services
 		private readonly DiscordSocketClient _client;
 		private readonly CommandService _commands;
 		private readonly AppConfig _config;
+		private readonly IServiceProvider _serviceProvider;
 
-		public CommandHandler(DiscordSocketClient client, CommandService commands, AppConfig config)
+		public CommandHandler(DiscordSocketClient client, CommandService commands, AppConfig config, 
+							  IServiceProvider serviceProvider)
 		{
 			_commands = commands;
 			_client = client;
 			_config = config;
+			_serviceProvider = serviceProvider;
+		}
+
+		private Task LogAsync(LogMessage log)
+		{
+			Console.WriteLine(log);
+			return Task.CompletedTask;
 		}
 
 		public async Task InstallCommandsAsync()
 		{
-			await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), null);
+			_commands.Log += LogAsync;
+			await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _serviceProvider);
 			_client.MessageReceived += HandleCommandAsync;
 		}
 
