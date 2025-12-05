@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,10 +16,10 @@ namespace DiscordMusicBot.Services
 	{
 		private readonly DiscordSocketClient _client;
 		private readonly InteractionService _interactions;
-		private readonly AppConfig _config;
+		private readonly IConfiguration _config;
 		private readonly IServiceProvider _serviceProvider;
 
-		public InteractionHandler(DiscordSocketClient client, InteractionService interactions, AppConfig config,
+		public InteractionHandler(DiscordSocketClient client, InteractionService interactions, IConfiguration config,
 							  IServiceProvider serviceProvider)
 		{
 			_interactions = interactions;

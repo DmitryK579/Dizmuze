@@ -68,9 +68,6 @@ namespace DiscordMusicBot.Modules
 
 		private async ValueTask<LavalinkPlayer?> GetPlayerAsync(bool connectToVoiceChannel = true)
 		{
-			await _audioService.StartAsync();
-			await _audioService.WaitForReadyAsync();
-
 			var retrieveOptions = new PlayerRetrieveOptions(
 				ChannelBehavior: connectToVoiceChannel ? 
 				PlayerChannelBehavior.Join : PlayerChannelBehavior.None);

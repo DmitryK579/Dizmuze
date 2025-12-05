@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
@@ -15,10 +16,10 @@ namespace DiscordMusicBot.Services
 	{
 		private readonly DiscordSocketClient _client;
 		private readonly CommandService _commands;
-		private readonly AppConfig _config;
+		private readonly IConfiguration _config;
 		private readonly IServiceProvider _serviceProvider;
 
-		public CommandHandler(DiscordSocketClient client, CommandService commands, AppConfig config, 
+		public CommandHandler(DiscordSocketClient client, CommandService commands, IConfiguration config, 
 							  IServiceProvider serviceProvider)
 		{
 			_commands = commands;
@@ -53,7 +54,7 @@ namespace DiscordMusicBot.Services
 
 			// Create a number to track where the prefix ends and the command begins
 			int argPos = 0;
-			if (userMessage.HasStringPrefix(_config.Discord.Prefix, ref argPos))
+			if (userMessage.HasStringPrefix(_config["Discord:Prefix"], ref argPos))
 			{
 				var context = new SocketCommandContext(_client, userMessage);
 				var result = await _commands.ExecuteAsync(context, argPos, null);

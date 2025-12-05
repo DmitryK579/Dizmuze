@@ -4,102 +4,41 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using DiscordMusicBot.Services;
 using Lavalink4NET.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace DiscordMusicBot
 {
-    internal class Program
+    internal sealed class Program
     {
 		public static async Task Main(string[] args)
 		{
-			var bot = new DiscordBot();
-			await bot.RunBotAsync();
-		}
-	}
-	internal class DiscordBot
-	{
-		private DiscordSocketClient _client;
-		private CommandHandler _commandHandler;
-		private InteractionHandler _interactionHandler;
-		private readonly AppConfig _config;
+			var builder = new HostApplicationBuilder(args);
+			builder.Configuration.AddJsonFile("Config.json", optional:false);
 
-		public DiscordBot()
-		{
-			_config = ReadConfig();
-		}
+			builder.Services.AddSingleton<DiscordSocketClient>();
+			builder.Services.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()));
+			builder.Services.AddSingleton<CommandService>();
 
-		public async Task RunBotAsync()
-		{
-			//Bot cannot run if config failed to load
-			if (_config == null)
-				return;
-
-			using (var services = ConfigureServices())
+			builder.Services.AddLavalink();
+			builder.Services.ConfigureLavalink(config =>
 			{
-				_client = services.GetRequiredService<DiscordSocketClient>();
-				_client.Log += Log;
-				_commandHandler = services.GetRequiredService<CommandHandler>();
-				_interactionHandler = services.GetRequiredService<InteractionHandler>();
+				config.BaseAddress = new Uri(builder.Configuration["Lavalink:BaseAddress"]);
+				config.Passphrase = builder.Configuration["Lavalink:Passphrase"];
+			});
+			builder.Services.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));
 
-				// Load the bot token from the appconfig.json file
-				if (string.IsNullOrEmpty(_config.Discord.Token))
-				{
-					Console.WriteLine("Error: Bot token is missing or invalid.");
-					return;
-				}
-				// Log in and start the bot
-				await _client.LoginAsync(TokenType.Bot, _config.Discord.Token);
-				await _client.StartAsync();
-				await _commandHandler.InstallCommandsAsync();
-				await _interactionHandler.InitializeInteractionsAsync();
-				// Block the program until it is closed
-				await Task.Delay(-1);
-			}
-		}
+			builder.Services.AddHostedService<DiscordBot>();
+			builder.Services.AddSingleton<CommandHandler>();
+			builder.Services.AddSingleton<InteractionHandler>();
 
-		private AppConfig ReadConfig()
-		{
-			try
-			{
-				string jsonContent = File.ReadAllText("Config.json");
-				var config = JsonSerializer.Deserialize<AppConfig>(jsonContent);
-				return config;
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Error reading config: {ex.Message}");
-				return null;
-			}
-		}
-
-		private Task Log(LogMessage log)
-		{
-			Console.WriteLine(log);
-			return Task.CompletedTask;
-		}
-
-		private ServiceProvider ConfigureServices()
-		{
-			return new ServiceCollection()
-				.AddSingleton(_config)
-				.AddSingleton<DiscordSocketClient>()
-				.AddSingleton<CommandHandler>()
-				.AddSingleton<CommandService>()
-				.AddSingleton<InteractionHandler>()
-				.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
-				.AddLavalink()
-				.ConfigureLavalink(config =>
-				{
-					config.BaseAddress = new Uri(_config.Lavalink.BaseAddress);
-					config.Passphrase = _config.Lavalink.Passphrase;
-				})
-				.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace))
-				.BuildServiceProvider();
+			await builder.Build().RunAsync();
 		}
 	}
 }
