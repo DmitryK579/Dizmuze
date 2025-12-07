@@ -24,7 +24,6 @@ namespace DiscordMusicBot
 
 			builder.Services.AddSingleton<DiscordSocketClient>();
 			builder.Services.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()));
-			builder.Services.AddSingleton<CommandService>();
 
 			builder.Services.AddLavalink();
 			builder.Services.ConfigureLavalink(config =>
@@ -35,7 +34,6 @@ namespace DiscordMusicBot
 			builder.Services.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));
 
 			builder.Services.AddHostedService<DiscordBot>();
-			builder.Services.AddSingleton<CommandHandler>();
 			builder.Services.AddSingleton<InteractionHandler>();
 
 			await builder.Build().RunAsync();

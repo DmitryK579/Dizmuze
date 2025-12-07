@@ -18,20 +18,17 @@ namespace DiscordMusicBot
 	internal class DiscordBot : IHostedService
 	{
 		private readonly DiscordSocketClient _client;
-		private readonly CommandHandler _commandHandler;
 		private readonly InteractionHandler _interactionHandler;
 		private readonly IServiceProvider _serviceProvider;
 		private readonly IConfiguration _config;
 		private readonly ILogger<DiscordBot> _logger;
 
-		public DiscordBot(DiscordSocketClient client, CommandHandler commandHandler, 
+		public DiscordBot(DiscordSocketClient client, 
 						  InteractionHandler interactionHandler, IServiceProvider serviceProvider, 
 						  IConfiguration config, ILogger<DiscordBot> logger)
 		{
 			_client = client
 			?? throw new ArgumentNullException(nameof(client));
-			_commandHandler = commandHandler
-			?? throw new ArgumentNullException(nameof(commandHandler));
 			_interactionHandler = interactionHandler
 			?? throw new ArgumentNullException(nameof(interactionHandler));
 			_serviceProvider = serviceProvider
@@ -55,7 +52,6 @@ namespace DiscordMusicBot
 			await _client.LoginAsync(TokenType.Bot, token);
 			await _client.StartAsync();
 
-			await _commandHandler.InstallCommandsAsync();
 			await _interactionHandler.InitializeInteractionsAsync();
 		}
 

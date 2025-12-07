@@ -1,7 +1,6 @@
 {
   "Discord": {
-    "Token": "YourBotToken",
-    "Prefix": "!"
+    "Token": "YourBotToken"
   },
   "Lavalink": {
     "BaseAddress": "http://localhost:2333",
