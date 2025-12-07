@@ -1,6 +1,19 @@
 {
   "Discord": {
-    "Token": "YourBotToken",
-    "Prefix": "/"
+    "Token": "YourBotToken"
+  },
+  "Lavalink": {
+    "BaseAddress": "http://localhost:2333",
+    "Passphrase": "EnterPasswordHere"
+  },
+  "Logging": {
+    "Console": {
+      "LogLevel": {
+        "Default": "Information",
+        "Microsoft": "Information",
+        "Lavalink4NET": "Information",
+        "Dizmuze": "Information"
+      }
+    }
   }
 }

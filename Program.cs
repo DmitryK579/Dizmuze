@@ -1,67 +1,51 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
+using Dizmuze.Services;
+using Lavalink4NET.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Dizmuze.Settings;
 
-namespace DiscordMusicBot
+namespace Dizmuze
 {
-    internal class Program
+    internal sealed class Program
     {
-		static async Task Main(string[] args)
+		public static async Task Main(string[] args)
 		{
-			var bot = new DiscordBot();
-			await bot.RunBotAsync();
-		}
-	}
-	public class DiscordBot
-	{
-		private readonly DiscordSocketClient _client;
-		private AppConfig _config;
+			var builder = new HostApplicationBuilder(args);
 
-		public DiscordBot()
-		{
-			_config = ReadConfig();
-			_client = new DiscordSocketClient();
-			_client.Log += Log;
-		}
+			//Config section
+			builder.Configuration.AddJsonFile("Config.json", optional:false);
+			builder.Services.AddOptions<DiscordBotSettings>().Bind(builder.Configuration.GetSection("Discord"));
 
-		public async Task RunBotAsync()
-		{
-			// Load the bot token from the appconfig.json file
-			if (string.IsNullOrEmpty(_config.Discord.Token))
+			//Discord.NET library services
+			builder.Services.AddSingleton<DiscordSocketClient>();
+			builder.Services.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()));
+
+			//Lavalink4NET library services
+			builder.Services.AddLavalink();
+			builder.Services.ConfigureLavalink(config =>
 			{
-				Console.WriteLine("Error: Bot token is missing or invalid.");
-				return;
-			}
-			// Log in and start the bot
-			await _client.LoginAsync(TokenType.Bot, _config.Discord.Token);
-			await _client.StartAsync();
-			// Block the program until it is closed
-			await Task.Delay(-1);
-		}
+				config.BaseAddress = new Uri(builder.Configuration["Lavalink:BaseAddress"]);
+				config.Passphrase = builder.Configuration["Lavalink:Passphrase"];
+			});
 
-		private AppConfig ReadConfig()
-		{
-			try
-			{
-				string jsonContent = File.ReadAllText("Config.json");
-				var config = JsonSerializer.Deserialize<AppConfig>(jsonContent);
-				return config;
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Error reading config: {ex.Message}");
-				return null;
-			}
-		}
+			//Own services
+			builder.Services.AddHostedService<DiscordBot>();
+			builder.Services.AddSingleton<InteractionHandler>();
 
-		private Task Log(LogMessage log)
-		{
-			Console.WriteLine(log);
-			return Task.CompletedTask;
+			//Logging section
+			builder.Services.AddLogging(x => x.AddConsole().AddConfiguration(builder.Configuration.GetSection("Logging")));
+
+			await builder.Build().RunAsync();
 		}
 	}
 }
