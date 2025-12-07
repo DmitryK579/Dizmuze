@@ -3,11 +3,13 @@ using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
 using DiscordMusicBot.Services;
+using DiscordMusicBot.Settings;
 using Lavalink4NET.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.IO;
 using System.Text.Json;
@@ -15,17 +17,17 @@ using System.Threading.Tasks;
 
 namespace DiscordMusicBot
 {
-	internal class DiscordBot : IHostedService
+	internal sealed class DiscordBot : IHostedService
 	{
 		private readonly DiscordSocketClient _client;
 		private readonly InteractionHandler _interactionHandler;
 		private readonly IServiceProvider _serviceProvider;
-		private readonly IConfiguration _config;
+		private readonly IOptions<DiscordBotSettings> _settings;
 		private readonly ILogger<DiscordBot> _logger;
 
 		public DiscordBot(DiscordSocketClient client, 
-						  InteractionHandler interactionHandler, IServiceProvider serviceProvider, 
-						  IConfiguration config, ILogger<DiscordBot> logger)
+						  InteractionHandler interactionHandler, IServiceProvider serviceProvider,
+						  IOptions<DiscordBotSettings> settings, ILogger<DiscordBot> logger)
 		{
 			_client = client
 			?? throw new ArgumentNullException(nameof(client));
@@ -33,14 +35,13 @@ namespace DiscordMusicBot
 			?? throw new ArgumentNullException(nameof(interactionHandler));
 			_serviceProvider = serviceProvider
 			?? throw new ArgumentNullException(nameof(serviceProvider));
-			_config = config;
+			_settings = settings;
 			_logger = logger;
 		}
 
 		public async Task StartAsync(CancellationToken cancellationToken)
 		{
-			string token = _config["Discord:Token"];
-			if (string.IsNullOrEmpty(token))
+			if (string.IsNullOrEmpty(_settings.Value.Token))
 			{
 				_logger.LogCritical("Error: Discord Bot token is missing or invalid.");
 				return;
@@ -49,7 +50,7 @@ namespace DiscordMusicBot
 			_client.Log += Log;
 			_client.Ready += Ready;
 
-			await _client.LoginAsync(TokenType.Bot, token);
+			await _client.LoginAsync(TokenType.Bot, _settings.Value.Token);
 			await _client.StartAsync();
 
 			await _interactionHandler.InitializeInteractionsAsync();

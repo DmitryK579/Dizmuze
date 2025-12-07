@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace DiscordMusicBot.Services
 {
-	internal class InteractionHandler
+	internal sealed class InteractionHandler
 	{
 		private readonly DiscordSocketClient _client;
 		private readonly InteractionService _interactions;

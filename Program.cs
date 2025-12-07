@@ -12,6 +12,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using DiscordMusicBot.Settings;
 
 namespace DiscordMusicBot
 {
@@ -20,7 +21,9 @@ namespace DiscordMusicBot
 		public static async Task Main(string[] args)
 		{
 			var builder = new HostApplicationBuilder(args);
+
 			builder.Configuration.AddJsonFile("Config.json", optional:false);
+			builder.Services.AddOptions<DiscordBotSettings>().Bind(builder.Configuration.GetSection("Discord"));
 
 			builder.Services.AddSingleton<DiscordSocketClient>();
 			builder.Services.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()));
@@ -31,6 +34,7 @@ namespace DiscordMusicBot
 				config.BaseAddress = new Uri(builder.Configuration["Lavalink:BaseAddress"]);
 				config.Passphrase = builder.Configuration["Lavalink:Passphrase"];
 			});
+
 			builder.Services.AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));
 
 			builder.Services.AddHostedService<DiscordBot>();
