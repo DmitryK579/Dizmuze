@@ -2,8 +2,8 @@
 using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
-using DiscordMusicBot.Services;
-using DiscordMusicBot.Settings;
+using Dizmuze.Services;
+using Dizmuze.Settings;
 using Lavalink4NET.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +15,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace DiscordMusicBot
+namespace Dizmuze
 {
 	internal sealed class DiscordBot : IHostedService
 	{
@@ -29,18 +29,16 @@ namespace DiscordMusicBot
 						  InteractionHandler interactionHandler, IServiceProvider serviceProvider,
 						  IOptions<DiscordBotSettings> settings, ILogger<DiscordBot> logger)
 		{
-			_client = client
-			?? throw new ArgumentNullException(nameof(client));
-			_interactionHandler = interactionHandler
-			?? throw new ArgumentNullException(nameof(interactionHandler));
-			_serviceProvider = serviceProvider
-			?? throw new ArgumentNullException(nameof(serviceProvider));
+			_client = client;
+			_interactionHandler = interactionHandler;
+			_serviceProvider = serviceProvider;
 			_settings = settings;
 			_logger = logger;
 		}
 
 		public async Task StartAsync(CancellationToken cancellationToken)
 		{
+			//Bot cannot login without a valid token
 			if (string.IsNullOrEmpty(_settings.Value.Token))
 			{
 				_logger.LogCritical("Error: Discord Bot token is missing or invalid.");

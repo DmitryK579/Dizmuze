@@ -12,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiscordMusicBot.Modules
+namespace Dizmuze.Modules
 {
 	[RequireContext(ContextType.Guild)]
 	public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext>

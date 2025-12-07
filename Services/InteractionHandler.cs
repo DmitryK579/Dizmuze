@@ -10,7 +10,7 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiscordMusicBot.Services
+namespace Dizmuze.Services
 {
 	internal sealed class InteractionHandler
 	{
