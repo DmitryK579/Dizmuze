@@ -1,19 +1,10 @@
 ﻿using Discord;
-using Discord.Commands;
-using Discord.Interactions;
 using Discord.WebSocket;
 using Dizmuze.Services;
 using Dizmuze.Settings;
-using Lavalink4NET.Extensions;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.IO;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Dizmuze
 {
